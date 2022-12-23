@@ -21,9 +21,9 @@ bool selectMenu = true;
 int menuCounter = 0;
 
 int delayValue = 0;
-int longValue = 0;
-int intervalValue = 0;
-int countValue = 0;
+int longValue = 1;
+int intervalValue = 1;
+int countValue = 1;
 
 int encoderState = 0;
 const unsigned char lookupTable[7][4] = {
@@ -89,22 +89,22 @@ void IRAM_ATTR readEncoder()
       {
         longValue--;
 
-        if (longValue < 0)
-          longValue = 0;
+        if (longValue < 1)
+          longValue = 1;
       }
       if (menuCounter == 2)
       {
         intervalValue--;
 
-        if (intervalValue < 0)
-          intervalValue = 0;
+        if (intervalValue < 1)
+          intervalValue = 1;
       }
       if (menuCounter == 3)
       {
         countValue--;
 
-        if (countValue < 0)
-          countValue = 0;
+        if (countValue < 1)
+          countValue = 1;
       }
     }
   }
