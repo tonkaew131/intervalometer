@@ -202,7 +202,7 @@ void handleTimer()
   second = (second % (longValue + intervalValue));
 
   // Shooting phase
-  if (second < longValue)
+  if ((second < longValue) && (timerCount <= countValue))
   {
     OLED.setTextSize(2);
     OLED.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
@@ -215,9 +215,16 @@ void handleTimer()
     return;
   }
 
-  if (timerCount >= countValue)
+  if (timerCount > countValue)
   {
-    timerState = false;
+    OLED.setTextSize(3);
+    OLED.setTextColor(BLACK, WHITE);
+    OLED.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+    drawText("DONE!", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, "CENTER");
+
+    OLED.setTextSize(1);
+    drawText(String(countValue) + "/" + String(countValue), SCREEN_WIDTH / 2, 2, "N");
+    return;
   }
 
   second -= longValue;
