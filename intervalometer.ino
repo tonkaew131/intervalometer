@@ -15,6 +15,7 @@
 #define SCREEN_ADDRESS 0x3C
 Adafruit_SSD1306 OLED(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+unsigned long lastFrameTime;
 bool selectMenu = true;
 int menuCounter = 0;
 int delayValue = 0;
@@ -226,13 +227,14 @@ void drawSubMenu(int nums)
 
 void loop()
 {
+  // Serial.println(1 / ((micros() - lastFrameTime) * 1000 * 1000));
   OLED.clearDisplay();
 
   drawMenu(menuCounter);
   drawSubMenu(menuCounter);
 
   OLED.display();
-  delay(500);
+  // lastFrameTime = micros();
 }
 
 void drawText(String text, int x, int y, String anchor)
