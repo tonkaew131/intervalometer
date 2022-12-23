@@ -28,7 +28,7 @@ void setup()
   // Rotary Encoder
   pinMode(ENCODER_CLK, INPUT);
   pinMode(ENCODER_DT, INPUT);
-  pinMode(ENCODER_BTN, INPUT);
+  pinMode(ENCODER_BTN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(ENCODER_CLK), readEncoder, FALLING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_BTN), releaseEncoder, FALLING);
   Serial.println("[ROTA]: Attached interrupt");
@@ -166,9 +166,9 @@ void drawSubMenu(int nums)
   if (nums == 4)
   {
     OLED.setTextColor(WHITE, BLACK);
-    drawText("Start?", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 8, "S");
+    drawText("Start?", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "S");
     OLED.setTextSize(1);
-    drawText("0s/0s/0s/" + String(countValue), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 8, "N");
+    drawText("0s/0s/0s/" + String(countValue), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "N");
     return;
   }
 
