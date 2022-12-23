@@ -112,8 +112,25 @@ void IRAM_ATTR readEncoder()
   return;
 }
 
+unsigned long startTime = 0;
+bool timerState = false;
 void releaseEncoder()
 {
+  if (menuCounter == 4)
+  {
+    // Starting
+    if (timerState == false)
+    {
+      startTime = millis();
+      timerState = true;
+    }
+    else // Stopping
+    {
+      timerState = false;
+    }
+    return;
+  }
+
   selectMenu = !selectMenu;
   return;
 }
@@ -154,13 +171,68 @@ void loop()
 
   drawMenu(menuCounter);
   drawSubMenu(menuCounter);
+  handleTimer();
 
   OLED.display();
   // lastFrameTime = micros();
 }
 
+void handleTimer()
+{
+  if (timerState == false)
+    return;
+
+  int second = (int)((millis() - startTime) / 1000);
+
+  OLED.setTextColor(WHITE, BLACK);
+
+  // Delay phase
+  if (second < delayValue)
+  {
+    OLED.setTextSize(3);
+    drawText(String((int)(delayValue - second)), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "S");
+    OLED.setTextSize(1);
+    drawText("Start in", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "N");
+    return;
+  }
+
+  second -= delayValue;
+
+  int timerCount = ceil(second / (longValue + intervalValue)) + 1;
+  second = (second % (longValue + intervalValue));
+
+  // Shooting phase
+  if (second < longValue)
+  {
+    OLED.setTextSize(2);
+    OLED.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
+    OLED.setTextColor(BLACK, WHITE);
+    drawText(String("SHOOTING"), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "S");
+    OLED.setTextSize(1);
+    drawText(String((int)(longValue - second)) + "s", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "N");
+
+    drawText(String(timerCount) + "/" + String(countValue), SCREEN_WIDTH / 2, 2, "N");
+    return;
+  }
+
+  if (timerCount >= countValue)
+  {
+    timerState = false;
+  }
+
+  second -= longValue;
+  drawText(String(timerCount) + "/" + String(countValue), SCREEN_WIDTH / 2, 2, "N");
+  drawText(String((int)(intervalValue - second)), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, "CENTER");
+  return;
+}
+
 void drawMenu(int nums)
 {
+  if (timerState == true)
+  {
+    return;
+  }
+
   // Start Menu
   if (nums == 4)
     return;
@@ -212,6 +284,11 @@ void drawMenu(int nums)
 
 void drawSubMenu(int nums)
 {
+  if (timerState == true)
+  {
+    return;
+  }
+
   OLED.setTextSize(3);
   if (selectMenu) // Main Menu
     OLED.setTextColor(WHITE, BLACK);
