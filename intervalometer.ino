@@ -18,20 +18,33 @@ Adafruit_SSD1306 OLED(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 unsigned long lastFrameTime;
 bool selectMenu = true;
 int menuCounter = 0;
+
 int delayValue = 0;
 int longValue = 0;
 int intervalValue = 0;
 int countValue = 0;
+
+int encoderState = 0;
+const unsigned char lookupTable[7][4] = {
+    {0, 2, 4, 0},
+    {3, 0, 1, 0 | 16},
+    {3, 2, 0, 0},
+    {3, 2, 1, 0},
+    {6, 0, 4, 0},
+    {6, 5, 0, 0 | 32},
+    {6, 5, 4, 0},
+};
 void setup()
 {
   Serial.begin(9600);
 
   // Rotary Encoder
-  pinMode(ENCODER_CLK, INPUT);
-  pinMode(ENCODER_DT, INPUT);
   pinMode(ENCODER_BTN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_CLK), readEncoder, FALLING);
+  pinMode(ENCODER_DT, INPUT_PULLUP);
+  pinMode(ENCODER_CLK, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(ENCODER_BTN), releaseEncoder, FALLING);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_DT), readEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_CLK), readEncoder, CHANGE);
   Serial.println("[ROTA]: Attached interrupt");
 
   if (!OLED.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
@@ -42,12 +55,31 @@ void setup()
   }
 }
 
+void loop()
+{
+  // Serial.println(1 / ((micros() - lastFrameTime) * 1000 * 1000));
+  OLED.clearDisplay();
+
+  drawMenu(menuCounter);
+  drawSubMenu(menuCounter);
+
+  OLED.display();
+  // lastFrameTime = micros();
+}
+
 void readEncoder()
 {
-  int dtValue = digitalRead(ENCODER_DT);
+  // Grab state of input pins.
+  unsigned char pinstate = (digitalRead(ENCODER_CLK) << 1) | digitalRead(ENCODER_DT);
+
+  // Determine new state from the pins and state table.
+  encoderState = lookupTable[encoderState & 0xf][pinstate];
+
+  // Return emit bits, ie the generated event.
+  int direction = encoderState & 48;
 
   // Clockwise
-  if (dtValue == HIGH)
+  if (direction == 16)
   {
     if (selectMenu)
     {
@@ -68,7 +100,7 @@ void readEncoder()
   }
 
   // Counter Clockwise
-  if (dtValue == LOW)
+  if (direction == 32)
   {
     if (selectMenu)
     {
@@ -223,18 +255,6 @@ void drawSubMenu(int nums)
   drawText("0s", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "CENTER");
 
   return;
-}
-
-void loop()
-{
-  // Serial.println(1 / ((micros() - lastFrameTime) * 1000 * 1000));
-  OLED.clearDisplay();
-
-  drawMenu(menuCounter);
-  drawSubMenu(menuCounter);
-
-  OLED.display();
-  // lastFrameTime = micros();
 }
 
 void drawText(String text, int x, int y, String anchor)
