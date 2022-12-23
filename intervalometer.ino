@@ -16,6 +16,7 @@
 Adafruit_SSD1306 OLED(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 unsigned long lastFrameTime;
+long lastDebounceTime = 0;
 bool selectMenu = true;
 int menuCounter = 0;
 
@@ -34,40 +35,8 @@ const unsigned char lookupTable[7][4] = {
     {6, 5, 0, 0 | 32},
     {6, 5, 4, 0},
 };
-void setup()
-{
-  Serial.begin(9600);
 
-  // Rotary Encoder
-  pinMode(ENCODER_BTN, INPUT_PULLUP);
-  pinMode(ENCODER_DT, INPUT_PULLUP);
-  pinMode(ENCODER_CLK, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_BTN), releaseEncoder, FALLING);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_DT), readEncoder, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_CLK), readEncoder, CHANGE);
-  Serial.println("[ROTA]: Attached interrupt");
-
-  if (!OLED.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
-  {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ;
-  }
-}
-
-void loop()
-{
-  // Serial.println(1 / ((micros() - lastFrameTime) * 1000 * 1000));
-  OLED.clearDisplay();
-
-  drawMenu(menuCounter);
-  drawSubMenu(menuCounter);
-
-  OLED.display();
-  // lastFrameTime = micros();
-}
-
-void readEncoder()
+void IRAM_ATTR readEncoder()
 {
   // Grab state of input pins.
   unsigned char pinstate = (digitalRead(ENCODER_CLK) << 1) | digitalRead(ENCODER_DT);
@@ -147,6 +116,47 @@ void releaseEncoder()
 {
   selectMenu = !selectMenu;
   return;
+}
+
+void setup()
+{
+  Serial.begin(9600);
+
+  // Rotary Encoder
+  pinMode(ENCODER_BTN, INPUT_PULLUP);
+  pinMode(ENCODER_DT, INPUT_PULLUP);
+  pinMode(ENCODER_CLK, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_DT), readEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_CLK), readEncoder, CHANGE);
+  Serial.println("[ROTA]: Attached interrupt");
+
+  if (!OLED.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
+  {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;)
+      ;
+  }
+}
+
+void loop()
+{
+  if ((millis() - lastDebounceTime) > 150)
+  {
+    if (digitalRead(ENCODER_BTN) == 0)
+    {
+      releaseEncoder();
+      lastDebounceTime = millis();
+    }
+  }
+
+  // Serial.println(1 / ((micros() - lastFrameTime) * 1000 * 1000));
+  OLED.clearDisplay();
+
+  drawMenu(menuCounter);
+  drawSubMenu(menuCounter);
+
+  OLED.display();
+  // lastFrameTime = micros();
 }
 
 void drawMenu(int nums)
