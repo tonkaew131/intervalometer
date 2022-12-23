@@ -77,13 +77,33 @@ void readEncoder()
     else
     {
       if (menuCounter == 0)
+      {
         delayValue--;
+
+        if (delayValue < 0)
+          delayValue = 0;
+      }
       if (menuCounter == 1)
+      {
         longValue--;
+
+        if (longValue < 0)
+          longValue = 0;
+      }
       if (menuCounter == 2)
+      {
         intervalValue--;
+
+        if (intervalValue < 0)
+          intervalValue = 0;
+      }
       if (menuCounter == 3)
+      {
         countValue--;
+
+        if (countValue < 0)
+          countValue = 0;
+      }
     }
   }
 
@@ -168,7 +188,7 @@ void drawSubMenu(int nums)
     OLED.setTextColor(WHITE, BLACK);
     drawText("Start?", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "S");
     OLED.setTextSize(1);
-    drawText("0s/0s/0s/" + String(countValue), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "N");
+    drawText(String(delayValue) + "s/" + String(longValue) + "s/" + String(intervalValue) + "s/" + String(countValue), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 8, "N");
     return;
   }
 
@@ -208,20 +228,8 @@ void loop()
 {
   OLED.clearDisplay();
 
-  // menuCounter = (menuCounter + 4) % 4;
-
   drawMenu(menuCounter);
   drawSubMenu(menuCounter);
-
-  // Serial.print(delayValue);
-  // Serial.print(" ");
-  // Serial.print(longValue);
-  // Serial.print(" ");
-  // Serial.print(intervalValue);
-  // Serial.print(" ");
-  // Serial.println(countValue);
-
-  // Serial.println(digitalRead(ENCODER_BTN));
 
   OLED.display();
   delay(500);
